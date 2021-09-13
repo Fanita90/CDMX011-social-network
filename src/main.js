@@ -1,23 +1,57 @@
-// Este es el punto de entrada de tu aplicacion
-const database = firebase.firestore();
-console.log(database);
+/* eslint-disable import/no-cycle */
+// eslint-disable-next-line import/no-cycle
+import { home } from './components/home.js';
+// eslint-disable-next-line import/no-cycle
+import { register } from './components/register.js';
+// eslint-disable-next-line import/no-cycle
+import { login } from './components/login.js';
+import { wall } from './components/wall.js';
+import { post } from './components/createPost.js';
+import { edit } from './components/edit.js';
 
-document.getElementById('form-register').style.display = 'none';
+const rootDiv = document.getElementById('root');
 
-const registerForm = document.getElementById('register-form');
+const routes = {
+  '/': home,
+  '/register': register,
+  '/login': login,
+  '/wall': wall,
+  '/post': post,
+  '/edit': edit,
+};
 
-registerForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const userName = registerForm['user-name'].value;
-  const email = registerForm['user-email'].value;
-  const password = registerForm['user-password'].value;
+export const onNavigate = (pathname) => {
+  window.history.pushState(
+    {},
+    pathname,
+    window.location.origin + pathname,
+  );
+  if (rootDiv) {
+    while (rootDiv.firstChild) { // Mientras contenga informacion
+      rootDiv.removeChild(rootDiv.firstChild);
+    }
+    rootDiv.appendChild(routes[pathname]()); // () 'La función'
+  }
+};
 
-  const newUser = await database.collection('users').doc().set({
-    userName,
-    email,
-    password,
-  });
-
-  console.log(newUser);
-  console.log(userName, email, password);
+firebase.auth().onAuthStateChanged((user) => {
+  if (user) {
+    onNavigate('/wall');
+  } else {
+    onNavigate('/');
+  }
 });
+
+const component = routes[window.location.pathname];
+
+window.onload = () => {
+  rootDiv.appendChild(component());
+};
+
+window.onpopstate = () => {
+  rootDiv.appendChild(routes[window.location.pathname]());
+  while (rootDiv.firstChild) { // Este es para poder usar las flechitas y borrar el pasado
+    rootDiv.removeChild(rootDiv.firstChild);
+  }
+  rootDiv.appendChild(component());
+};
