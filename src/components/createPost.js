@@ -32,7 +32,7 @@ export const post = () => {
             <p id="err-msg"></p>
             <div class ='btns-post'>
             <button id="btn-return">Regresar</button>
-            <button type='submit' class="btn-create-post">Publicar</button>
+            <button type='submit' id="btn-create-post">Publicar</button>
             </div>
         </form>
         <div id="post-container"></div>
@@ -71,8 +71,9 @@ export const post = () => {
     if (idea === ' ' || idea.length === 0 || topic === 'Selecciona una opción') {
       errMessage.innerHTML = 'Favor de llenar todos los campos';
     } else {
+      const userUid = getUser().uid;
       const user = getUser().email;
-      await newPost(user, topic, idea);
+      await newPost(userUid, user, topic, idea);
       onNavigate('/wall');
     }
   });
